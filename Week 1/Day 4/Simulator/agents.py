@@ -2,9 +2,8 @@ import random
 from order import Order
 
 class Agent:
-    def __init__(self, agent_id, inventory=0, arrival_prob=0.3):
+    def __init__(self, agent_id, arrival_prob=0.3):
         self.agent_id = agent_id
-        self.inventory = inventory
         self.arrival_prob = arrival_prob
 
     def act(self, env):
@@ -16,8 +15,6 @@ class RandomTraderAgent(Agent):
         if random.random() > self.arrival_prob:
             return None
         side = random.choice(["BUY", "SELL"])
-        if side == "SELL" and self.inventory <= 0:
-            return None
         price = random.choice([98, 99, 100, 101, 102])
         qty = random.randint(1, 5)
         return Order(self.agent_id, side, price, qty, 0)
@@ -28,8 +25,6 @@ class MarketTakerAgent(Agent):
         if random.random() > self.arrival_prob:
             return None
         side = random.choice(["BUY", "SELL"])
-        if side == "SELL" and self.inventory <= 0:
-            return None
         qty = random.randint(1, 5)
         return Order(self.agent_id, side, None, qty, 0)
 
