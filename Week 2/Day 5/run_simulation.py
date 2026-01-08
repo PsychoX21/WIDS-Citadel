@@ -14,6 +14,7 @@ from market_config import MarketConfig
 from agents import RandomTraderAgent, MarketTakerAgent, MarketMakerAgent
 from events import AgentArrivalEvent, MarketCloseEvent, SnapshotEvent
 from sanity_checks import validate_book_snapshot, validate_trades
+from analytics import validate_pipeline
 
 
 def run_simulation(seed=42, simulation_time=50.0):
@@ -112,6 +113,8 @@ if __name__ == "__main__":
         last_snapshot = book.current_snapshot()
         validate_book_snapshot(last_snapshot)
 
+    validate_pipeline(logger)
+    
     ohlc, volume = generate_ohlc(trades)
 
     assert (ohlc["low"] <= ohlc["high"]).all()
