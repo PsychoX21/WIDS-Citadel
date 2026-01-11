@@ -13,9 +13,9 @@ class AgentArrivalEvent(Event):
         self.env = env
 
     def execute(self, engine):
-        order = self.agent.act(self.env, self.time)
-        if order:
-            self.env.submit_order(order)
+        market_state = self.env.get_market_state()
+        action = self.agent.get_action(market_state)
+        self.env.apply_action(self.agent, action)
 
         next_time = self.agent.next_event_time(self.time)
         engine.schedule(AgentArrivalEvent(next_time, self.agent, self.env))

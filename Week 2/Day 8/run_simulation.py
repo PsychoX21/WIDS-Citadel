@@ -11,10 +11,11 @@ from engine import MarketEngine
 from environment import MarketEnvironment
 from logger import Logger
 from market_config import MarketConfig
-from agents import RandomTraderAgent, MarketTakerAgent, MarketMakerAgent
-from events import AgentArrivalEvent, MarketCloseEvent, SnapshotEvent
+from agents import RandomAgent, MarketMakerAgent, NoiseTraderAgent, MomentumAgent
+from events import AgentArrivalEvent, MarketCloseEvent, SnapshotEvent, FairValueUpdateEvent
 from sanity_checks import validate_book_snapshot, validate_trades
 from analytics import validate_pipeline
+from fair_value import FairValueProcess
 
 
 def run_simulation(seed=42, simulation_time=500.0):
@@ -26,12 +27,14 @@ def run_simulation(seed=42, simulation_time=500.0):
     logger = Logger()
     engine = MarketEngine(book, logger)
     env = MarketEnvironment(engine, config)
+    fv = FairValueProcess(initial_value=100.0, sigma=0.5, seed=seed)
 
     agents = [
-        RandomTraderAgent("R1", arrival_rate=0.6),
-        RandomTraderAgent("R2", arrival_rate=0.6),
-        MarketTakerAgent("T1", arrival_rate=0.4),
-        MarketMakerAgent("MM1", arrival_rate=0.8),
+        NoiseTraderAgent("N1", fv, arrival_rate=1.2),
+        NoiseTraderAgent("N2", fv, arrival_rate=1.2),
+        NoiseTraderAgent("N3", fv, arrival_rate=1.2),
+        MarketMakerAgent("MM1", arrival_rate=0.5),
+        MomentumAgent("M1", window=50, arrival_rate=0.8),
     ]
 
     for agent in agents:
@@ -40,6 +43,7 @@ def run_simulation(seed=42, simulation_time=500.0):
 
     engine.schedule(SnapshotEvent(0, env))
     engine.schedule(MarketCloseEvent(simulation_time))
+    engine.schedule(FairValueUpdateEvent(0, fv, dt=1.0))
     engine.run()
 
     return book, logger
@@ -103,7 +107,7 @@ if __name__ == "__main__":
         validate_book_snapshot(last_snapshot)
 
     validate_pipeline(logger)
-    
+
     ohlc = generate_ohlc(trades)
 
     if ohlc is not None:

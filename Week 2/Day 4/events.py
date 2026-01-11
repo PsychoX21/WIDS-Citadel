@@ -38,9 +38,6 @@ class OrderSubmissionEvent(Event):
         for t in engine.order_book.trades[prev_trades:]:
             engine.logger.record_trade(t)
 
-        snapshot = engine.order_book.book_after(self.order.order_id)
-        engine.logger.record_snapshot(engine.time, snapshot)
-
 class SnapshotEvent(Event):
     def __init__(self, time, env, depth=5):
         super().__init__(time)

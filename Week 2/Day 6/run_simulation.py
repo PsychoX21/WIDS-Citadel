@@ -11,7 +11,7 @@ from engine import MarketEngine
 from environment import MarketEnvironment
 from logger import Logger
 from market_config import MarketConfig
-from agents import RandomTraderAgent, MarketTakerAgent, MarketMakerAgent
+from agents import RandomAgent, MarketMakerAgent
 from events import AgentArrivalEvent, MarketCloseEvent, SnapshotEvent
 from sanity_checks import validate_book_snapshot, validate_trades
 from analytics import validate_pipeline
@@ -28,9 +28,8 @@ def run_simulation(seed=42, simulation_time=500.0):
     env = MarketEnvironment(engine, config)
 
     agents = [
-        RandomTraderAgent("R1", arrival_rate=0.6),
-        RandomTraderAgent("R2", arrival_rate=0.6),
-        MarketTakerAgent("T1", arrival_rate=0.4),
+        RandomAgent("R1", arrival_rate=0.6),
+        RandomAgent("R2", arrival_rate=0.6),
         MarketMakerAgent("MM1", arrival_rate=0.8),
     ]
 

@@ -13,9 +13,9 @@ class AgentArrivalEvent(Event):
         self.env = env
 
     def execute(self, engine):
-        order = self.agent.act(self.env, self.time)
-        if order:
-            self.env.submit_order(order)
+        market_state = self.env.get_market_state()
+        action = self.agent.get_action(market_state)
+        self.env.apply_action(self.agent, action)
 
         next_time = self.agent.next_event_time(self.time)
         engine.schedule(AgentArrivalEvent(next_time, self.agent, self.env))
@@ -37,7 +37,6 @@ class OrderSubmissionEvent(Event):
         
         for t in engine.order_book.trades[prev_trades:]:
             engine.logger.record_trade(t)
-            
 
 class SnapshotEvent(Event):
     def __init__(self, time, env, depth=5):
@@ -66,3 +65,15 @@ class SnapshotEvent(Event):
                             self.env,
                             self.depth)
             )
+
+class FairValueUpdateEvent(Event):
+    def __init__(self, time, fv_process, dt=1.0):
+        super().__init__(time)
+        self.fv = fv_process
+        self.dt = dt
+
+    def execute(self, engine):
+        self.fv.step()
+        engine.schedule(
+            FairValueUpdateEvent(engine.time + self.dt, self.fv, self.dt)
+        )
